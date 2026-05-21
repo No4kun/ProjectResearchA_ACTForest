@@ -2,38 +2,33 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using UnityEngine;
-
 public class WarpTrigger : MonoBehaviour
 {
-    [Tooltip("ワープで引き戻す距離（道の長さと同じにする）")]
-    public float loopDistance = 80f;
+    [Tooltip("ワープで引き戻す距離")]
+    public float loopDistance = 90f;
+    
+    [Tooltip("OVRPlayerControllerをここにアタッチしてください")]
+    public Transform player;
 
-    void OnTriggerEnter(Collider other)
+    void Update()
     {
-        // ぶつかったのがプレイヤーかどうか確認
-        if (other.CompareTag("Player"))
+        // プレイヤーが設定されていない場合は何もしない
+        if (player == null) return;
+
+        // プレイヤーのZ座標が loopDistance を超えたらワープ実行
+        if (player.position.z >= loopDistance)
         {
-            // 【重要】CharacterControllerがアタッチされている場合、
-            // 座標の直接変更が無視されることがあるため、一時的にオフにする
-            CharacterController cc = other.GetComponent<CharacterController>();
-            if (cc != null)
-            {
-                cc.enabled = false;
-            }
+            CharacterController cc = player.GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
 
-            // スムーズなワープ処理（現在のZ座標からループ距離分を引く）
-            Vector3 newPos = other.transform.position;
+            // ループ距離分だけ座標を戻す
+            Vector3 newPos = player.position;
             newPos.z -= loopDistance;
-            other.transform.position = newPos;
+            player.position = newPos;
 
-            // CharacterControllerをオンに戻す
-            if (cc != null)
-            {
-                cc.enabled = true;
-            }
-
-            Debug.Log("ワープ機構作動：プレイヤーを " + newPos.z + " に移動しました。");
+            if (cc != null) cc.enabled = true;
+            
+            // （※後ほど、ここに「蔓のオブジェクトたちも一緒に戻す」処理を追加します）
         }
     }
 }
