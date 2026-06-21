@@ -5,50 +5,86 @@ public class ThoughtGenerator : MonoBehaviour
 {
     [Header("設定")]
     public GameObject thoughtPrefab;
+    [Tooltip("OVRPlayerController をセットしてください")]
+    public Transform playerTransform; 
+    [Tooltip("生成した蔦をまとめる親オブジェクト（空のGameObject）")]
+    public Transform thoughtParent;
     
-    [Tooltip("OVRPlayerController ではなく、その中にある CenterEyeAnchor をセットしてください")]
-    public Transform vrCameraTransform; 
-    
-    public float spawnDistance = 15f;
+    [Tooltip("WarpTriggerと同じワープ距離（ループ距離）を設定してください")]
+    public float loopDistance = 100f;
 
-    [Header("テスト用")]
+    [Header("配置エリア")]
+    public float pathWidth = 2.5f;
+    public float maxAreaWidth = 10f;
+
+    [Header("テスト用一括生成設定")]
     public string testThoughtText = "私はダメだ";
+    public int testSpawnCount = 100;
+    public float spawnZRange = 100f;
 
-    [ContextMenu("思考オブジェクトを生成 (Test Spawn)")]
-    public void TestSpawnThought()
+    [ContextMenu("思考の蔦を一括生成 (Generate Multiple)")]
+    public void GenerateMultipleThoughts()
     {
-        GenerateThought(testThoughtText);
+        if (thoughtPrefab == null || playerTransform == null || thoughtParent == null) return;
+
+        // リセット処理
+        for (int i = thoughtParent.childCount - 1; i >= 0; i--)
+        {
+            DestroyImmediate(thoughtParent.GetChild(i).gameObject);
+        }
+
+        // 一括生成
+        for (int i = 0; i < testSpawnCount; i++)
+        {
+            float randomZ = playerTransform.position.z + Random.Range(5f, spawnZRange);
+            GenerateThoughtAtDistance(testThoughtText, randomZ, i);
+        }
+
+        Debug.Log($"『{testThoughtText}』の蔦を {testSpawnCount} 本（×3エリア分）一括生成しました！");
     }
 
-    public void GenerateThought(string textToDisplay)
+    [ContextMenu("思考の蔦を1つ生成 (Test Single Spawn)")]
+    public void TestSpawnSingleThought()
     {
-        if (thoughtPrefab == null || vrCameraTransform == null) return;
+        float targetZ = playerTransform.position.z + 15f;
+        // 1つ生成する際も、インデックスにランダムな値を入れて名前が被らないようにする
+        GenerateThoughtAtDistance(testThoughtText, targetZ, Random.Range(1000, 9999));
+    }
 
-        // 1. カメラの正面のベクトルを取得
-        Vector3 forwardDir = vrCameraTransform.forward;
-        
-        // 2. Y軸（上下の傾き）を 0 にして水平なベクトルにする
-        forwardDir.y = 0;
-        
-        // 3. ベクトルの長さを 1 に戻す（正規化）
-        forwardDir.Normalize();
+    // --- ループ対応の内部生成処理 ---
+    private void GenerateThoughtAtDistance(string textToDisplay, float targetZ, int index)
+    {
+        // 1. 基本となるX座標と回転を決定（3つのコピーで全て同じ形にするため）
+        float randomX = Random.Range(pathWidth, maxAreaWidth);
+        if (Random.value > 0.5f) randomX = -randomX; 
 
-        // 4. 水平方向に spawnDistance 分だけ進んだ位置を計算
-        Vector3 spawnPos = vrCameraTransform.position + (forwardDir * spawnDistance);
-        
-        // 5. 高さを強制的に固定する（例：地面から 1.5m の目の高さ）
-        spawnPos.y = 1.5f;
+        Quaternion randomRot = Quaternion.Euler(0, Random.Range(0, 360), 0);
 
-        // 文字がプレイヤーの方を向くように回転
-        Quaternion spawnRot = Quaternion.LookRotation(spawnPos - vrCameraTransform.position);
-        // ※文字が斜め上や下を向かないよう、回転のY軸の傾きも補正したい場合は以下を有効にします
-        // spawnRot.x = 0; spawnRot.z = 0;
+        // --- ① メインエリア ---
+        Vector3 mainPos = new Vector3(randomX, 0f, targetZ);
+        GameObject mainThought = Instantiate(thoughtPrefab, mainPos, randomRot, thoughtParent);
+        mainThought.name = $"ThoughtVine_{index}_Main";
+        SetThoughtText(mainThought, textToDisplay);
 
-        GameObject newThought = Instantiate(thoughtPrefab, spawnPos, spawnRot);
+        // --- ② 前方エリア（ループ用コピー：+loopDistance） ---
+        Vector3 forwardPos = mainPos;
+        forwardPos.z += loopDistance;
+        GameObject forwardThought = Instantiate(thoughtPrefab, forwardPos, randomRot, thoughtParent);
+        forwardThought.name = $"ThoughtVine_{index}_Forward";
+        SetThoughtText(forwardThought, textToDisplay);
 
-        TextMeshPro tmp = newThought.GetComponentInChildren<TextMeshPro>();
-        if (tmp != null) tmp.text = textToDisplay;
+        // --- ③ 後方エリア（振り返り用コピー：-loopDistance） ---
+        Vector3 backwardPos = mainPos;
+        backwardPos.z -= loopDistance;
+        GameObject backwardThought = Instantiate(thoughtPrefab, backwardPos, randomRot, thoughtParent);
+        backwardThought.name = $"ThoughtVine_{index}_Backward";
+        SetThoughtText(backwardThought, textToDisplay);
+    }
 
-        Debug.Log($"生成完了: 水平方向 {spawnDistance}m 先、高さ {spawnPos.y}m に出現");
+    // テキスト書き換え用のヘルパーメソッド
+    private void SetThoughtText(GameObject thoughtObj, string text)
+    {
+        TextMeshPro tmp = thoughtObj.GetComponentInChildren<TextMeshPro>();
+        if (tmp != null) tmp.text = text;
     }
 }
