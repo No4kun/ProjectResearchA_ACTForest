@@ -6,8 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="0d6d2ffe-a86d-4295-beb6-a286faeb06a0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ProjectResearchA_ACTForest/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ProjectResearchA_ACTForest/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD0.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD0.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD1.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD1.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD2.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD2.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD3.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD3.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD4.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Nature_Shield/Materials/Nature_Shield_LOD4.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/ThoughtVine.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/ThoughtVine.prefab.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/SampleScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/SampleScene.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/ThoughtGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/ThoughtGenerator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,6 +100,7 @@
       <workItem from="1779345563073" duration="3540000" />
       <workItem from="1781245143779" duration="1750000" />
       <workItem from="1782031542676" duration="2029000" />
+      <workItem from="1782053579225" duration="1739000" />
     </task>
     <servers />
   </component>
