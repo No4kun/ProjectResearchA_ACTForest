@@ -1,5 +1,8 @@
 using UnityEngine;
 using TMPro;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement; // エディタのシーン管理機能を使うために必要
+#endif
 
 public class ThoughtGenerator : MonoBehaviour
 {
@@ -79,6 +82,13 @@ public class ThoughtGenerator : MonoBehaviour
         GameObject backwardThought = Instantiate(thoughtPrefab, backwardPos, randomRot, thoughtParent);
         backwardThought.name = $"ThoughtVine_{index}_Backward";
         SetThoughtText(backwardThought, textToDisplay);
+        
+        #if UNITY_EDITOR
+                if (!Application.isPlaying) // 実行中（Playモード）以外の時だけ作動させる
+                {
+                    EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+                }
+        #endif
     }
 
     // テキスト書き換え用のヘルパーメソッド

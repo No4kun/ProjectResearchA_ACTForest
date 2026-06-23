@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 public class ForestGenerator : MonoBehaviour
 {
@@ -71,7 +74,14 @@ public class ForestGenerator : MonoBehaviour
                     
              GameObject tree3 = Instantiate(treePrefab, backwardPos, tree1.transform.rotation, forestParent);
              tree3.transform.localScale = tree1.transform.localScale;
-             tree3.name = $"Tree_Backward_{i}";    
+             tree3.name = $"Tree_Backward_{i}";
+             
+            #if UNITY_EDITOR
+                    if (!Application.isPlaying) // 実行中（Playモード）以外の時だけ作動させる
+                    {
+                        EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+                    }
+            #endif
         }
 
         Debug.Log($"合計 {treeCount * 3} 本の木を生成・配置しました！");
