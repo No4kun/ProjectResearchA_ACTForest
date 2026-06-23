@@ -6,6 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="0d6d2ffe-a86d-4295-beb6-a286faeb06a0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ProjectResearchA_ACTForest/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ProjectResearchA_ACTForest/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/SampleScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/SampleScene.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/ForestGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/ForestGenerator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/ThoughtGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/ThoughtGenerator.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,6 +97,7 @@
       <workItem from="1782053579225" duration="1739000" />
       <workItem from="1782185207137" duration="986000" />
       <workItem from="1782188986014" duration="613000" />
+      <workItem from="1782222443566" duration="99000" />
     </task>
     <servers />
   </component>

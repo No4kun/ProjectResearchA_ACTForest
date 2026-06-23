@@ -58,7 +58,17 @@ public class ThoughtGenerator : MonoBehaviour
     private void GenerateThoughtAtDistance(string textToDisplay, float targetZ, int index)
     {
         // 1. 基本となるX座標と回転を決定（3つのコピーで全て同じ形にするため）
-        float randomX = Random.Range(pathWidth, maxAreaWidth);
+        // 1. 0.0 ～ 1.0 の間でベースとなるランダム値を出す
+        float randomT = Random.value;
+
+        // 2. 値を2乗して「0に近い値（道の近く）」が出現する確率を圧倒的に高くする
+        // （もっと密集させたい場合は randomT * randomT * randomT と3乗にしてください）
+        float bias = randomT * randomT;
+
+        // 3. Mathf.Lerpを使って、pathWidth(道沿い) と maxAreaWidth(森の奥) の間で座標を決定する
+        float randomX = Mathf.Lerp(pathWidth, maxAreaWidth, bias);
+    
+        // 4. 左右の振り分け
         if (Random.value > 0.5f) randomX = -randomX; 
 
         Quaternion randomRot = Quaternion.Euler(0, Random.Range(0, 360), 0);
