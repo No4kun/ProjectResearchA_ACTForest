@@ -9,7 +9,19 @@ public class WarpTrigger : MonoBehaviour
     
     [Tooltip("OVRPlayerControllerをここにアタッチしてください")]
     public Transform player;
-
+    
+    [Header("連携する演出マネージャー")]
+    public MindTransitionManager transitionManager;
+    
+    void Start()
+    {
+        // 起動時に自動で MindTransitionManager を探し出して連携する
+        if (transitionManager == null)
+        {
+            transitionManager = FindObjectOfType<MindTransitionManager>();
+        }
+    }
+    
     void Update()
     {
         // プレイヤーが設定されていない場合は何もしない
@@ -28,7 +40,11 @@ public class WarpTrigger : MonoBehaviour
 
             if (cc != null) cc.enabled = true;
             
-            // （※後ほど、ここに「蔓のオブジェクトたちも一緒に戻す」処理を追加します）
+            // ワープ処理が行われた直後に、これを呼び出す
+            if (transitionManager != null)
+            {
+                transitionManager.AddLoopCount();
+            }
         }
     }
 }
