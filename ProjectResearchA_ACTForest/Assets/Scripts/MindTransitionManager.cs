@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using TMPro;
@@ -7,10 +9,21 @@ public class MindTransitionManager : MonoBehaviour
     [Header("ループ設定")]
     public int maxLoops = 12;
     public int currentLoop = 0;
-
-    // ★追加：インスペクターで変化のカーブを自由にいじれる機能
-    [Header("変化のカーブ（進行度の調整）")]
     public AnimationCurve transitionCurve = AnimationCurve.Linear(0, 0, 1, 1);
+
+    [Header("VR ウィンドウ（スタート・終了画面）")]
+    public CanvasGroup startHUD; 
+    public CanvasGroup endHUD;   
+    public float uiFadeTime = 2.0f; 
+    
+    // ★修正：距離をインスペクターから自由に調整できるように変更
+    [Header("終了画面の表示距離")]
+    [Tooltip("顔から何メートル離すか（デフォルトは2.5m）")]
+    public float hudDistance = 2.5f; 
+
+    [Header("プレイヤー設定")]
+    public OVRPlayerController playerController;
+    public Transform centerEyeCamera; 
 
     [Header("フェードさせるプレハブ（蔓＋文字）")]
     public GameObject vineWithTextPrefab;
@@ -34,14 +47,18 @@ public class MindTransitionManager : MonoBehaviour
     public float brightSkyExposure = 1.0f;
 
     // 内部変数
-    private Material vineMaterial;
-    private Material tmpMaterial;
+    private Material vineMaterial, tmpMaterial;
     private Color initialVineColor, initialTmpFaceColor, initialTmpEmission, initialTmpGlow, initialTmpOutline;
-    private Material originalSkybox;
-    private Material skyboxInstance;
+    private Material originalSkybox, skyboxInstance;
+
+    private bool isGameStarted = false;
+    private bool isGameEnded = false;
+    private bool isEndFadeComplete = false; 
 
     private void Start()
     {
+        currentLoop = 0;
+
         if (RenderSettings.skybox != null)
         {
             originalSkybox = RenderSettings.skybox;
@@ -74,8 +91,35 @@ public class MindTransitionManager : MonoBehaviour
         }
 
         ApplyTransition(0f);
+
+        if (startHUD != null) startHUD.alpha = 1f;
+        if (endHUD != null) { endHUD.alpha = 0f; endHUD.gameObject.SetActive(false); }
+        
+        if (playerController != null) playerController.EnableLinearMovement = false;
     }
 
+    private void Update()
+    {
+        bool isInputDetected = OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger) || 
+                               Input.GetKeyDown(KeyCode.Space) || 
+                               Input.GetMouseButtonDown(0);
+
+        if (!isGameStarted && isInputDetected)
+        {
+            StartCoroutine(StartGameProcess());
+        }
+
+        if (isEndFadeComplete && isInputDetected)
+        {
+            #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+            #else
+                Application.Quit();
+            #endif
+        }
+    }
+    
+    [ContextMenu("ループを1つ進める")]
     public void AddLoopCount()
     {
         if (currentLoop < maxLoops)
@@ -83,12 +127,16 @@ public class MindTransitionManager : MonoBehaviour
             currentLoop++;
             float rawProgress = (float)currentLoop / maxLoops;
             ApplyTransition(rawProgress);
+
+            if (currentLoop >= maxLoops)
+            {
+                StartCoroutine(EndGameProcess());
+            }
         }
     }
 
     private void ApplyTransition(float rawProgress)
     {
-        // ★修正：純粋な割り算の数値を、カーブのグラフに当てはめて補正する
         float progress = transitionCurve.Evaluate(rawProgress);
 
         if (initialVolume != null && finalVolume != null)
@@ -118,14 +166,62 @@ public class MindTransitionManager : MonoBehaviour
 
         if (skyboxInstance != null)
         {
-            if (skyboxInstance.HasProperty("_SkyTint"))
+            if (skyboxInstance.HasProperty("_SkyTint")) skyboxInstance.SetColor("_SkyTint", Color.Lerp(darkSkyTint, brightSkyTint, progress));
+            if (skyboxInstance.HasProperty("_Exposure")) skyboxInstance.SetFloat("_Exposure", Mathf.Lerp(darkSkyExposure, brightSkyExposure, progress));
+        }
+    }
+
+    private IEnumerator StartGameProcess()
+    {
+        if (startHUD != null)
+        {
+            float timer = 0f;
+            while (timer < uiFadeTime)
             {
-                skyboxInstance.SetColor("_SkyTint", Color.Lerp(darkSkyTint, brightSkyTint, progress));
+                timer += Time.deltaTime;
+                startHUD.alpha = Mathf.Lerp(1f, 0f, timer / uiFadeTime);
+                yield return null;
             }
-            if (skyboxInstance.HasProperty("_Exposure"))
+            startHUD.alpha = 0f;
+            startHUD.gameObject.SetActive(false);
+        }
+
+        if (playerController != null) playerController.EnableLinearMovement = true;
+        isGameStarted = true;
+    }
+
+    private IEnumerator EndGameProcess()
+    {
+        yield return new WaitForSeconds(2.0f);
+        
+        if (endHUD != null && centerEyeCamera != null)
+        {
+            Canvas parentCanvas = endHUD.GetComponentInParent<Canvas>();
+            if (parentCanvas != null)
             {
-                skyboxInstance.SetFloat("_Exposure", Mathf.Lerp(darkSkyExposure, brightSkyExposure, progress));
+                // ★大修正：フワッとした追従を廃止し、カメラの完全な子オブジェクトとしてガッチリ固定する
+                parentCanvas.transform.SetParent(centerEyeCamera);
+                
+                // カメラの真正面に hudDistance メートル離して配置
+                parentCanvas.transform.localPosition = new Vector3(0f, 0f, hudDistance);
+                parentCanvas.transform.localRotation = Quaternion.identity;
             }
+            
+            endHUD.transform.localPosition = Vector3.zero;
+            endHUD.transform.localRotation = Quaternion.identity;
+
+            endHUD.gameObject.SetActive(true);
+            float timer = 0f;
+            while (timer < uiFadeTime)
+            {
+                timer += Time.deltaTime;
+                endHUD.alpha = Mathf.Lerp(0f, 1f, timer / uiFadeTime);
+                yield return null;
+            }
+            endHUD.alpha = 1f;
+
+            isEndFadeComplete = true; 
+            isGameEnded = true; 
         }
     }
 
@@ -139,10 +235,6 @@ public class MindTransitionManager : MonoBehaviour
             if (tmpMaterial.HasProperty("_GlowColor")) tmpMaterial.SetColor("_GlowColor", initialTmpGlow);
             if (tmpMaterial.HasProperty("_OutlineColor")) tmpMaterial.SetColor("_OutlineColor", initialTmpOutline);
         }
-        
-        if (originalSkybox != null)
-        {
-            RenderSettings.skybox = originalSkybox;
-        }
+        if (originalSkybox != null) RenderSettings.skybox = originalSkybox;
     }
 }
